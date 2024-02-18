@@ -2,7 +2,7 @@ const express = require('express');
 const router =express.Router();
 const jwt = require('jsonwebtoken');
 const { verificarCredencial } = require('../middleware/login');
-const { getUsers } = require('../consultas/consultas');
+const { getUsers, deleteEvento, updateEvento } = require('../consultas/consultas');
 
 router.get("/", (req, res) => {
     res.send("soy la raiz del servidor");
@@ -28,7 +28,17 @@ router.get("/public", async (req, res) => {
 });
 
 router.get("/private", async (req, res) => {
-    res.json({ message: "ruta Privada" });
+    try {
+        //captura token del headers.
+        const token = req.headers.authorization.split(" ")[1];
+        //verifica el token con la palabra secreta.
+        jwt.verify(token, process.env.SECRET);
+        //ejecuta la accion.
+        res.json({ message: "ruta Privada" });
+        
+    } catch (error) {
+        res.status(500).json({ message: "acceso NO autorizado" });
+    };    
 });
 
 router.post("/login", async (req, res) => {
@@ -40,8 +50,36 @@ router.post("/login", async (req, res) => {
         res.json({token});
         
     } catch (error) {
-        res.status(500),
-        res.json({ message: error.message });        
+        res.status(500).json({ message: error.message });        
+    };
+});
+
+router.delete("/evento/:id", async (req, res) => {
+    try {
+        const { id } = req.params;
+        const token = req.headers.authorization.split(" ")[1];
+        jwt.verify(token, process.env.SECRET);
+        await deleteEvento(id);
+        const { email } = jwt.decode(token);
+        res.send(`El usuario ${email} elimino el evento: ${id}`);
+        
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    };
+});
+
+router.put("/evento/:id", async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { titulo, descripcion, fecha, lugar } = req.body;
+        const token = req.headers.authorization.split(" ")[1];
+        jwt.verify(token, process.env.SECRET);
+        await updateEvento(titulo, descripcion, fecha, lugar, id);
+        const { email } = jwt.decode(token);
+        res.send(`El usuario ${email} modifico el evento: ${id}`);
+
+    } catch (error) {
+        res.status(500).json({ message: error.message });
     };
 });
 
