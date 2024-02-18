@@ -18,3 +18,5 @@ const getData = async () => {
 };
 
 getData();
+
+module.exports = pool;

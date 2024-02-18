@@ -1,10 +1,9 @@
 const pool = require('../db/config');
 
-const getConsultas = async () => {
-    const consulta = "SELECT * FROM eventos";
-    const res = await pool.query(consulta);
+const getUsers = async () => {
+    const res = await pool.query("SELECT * FROM usuarios");
     return res.rows;
 };
 
-module.exports = { getConsultas };
+module.exports = { getUsers };
 
